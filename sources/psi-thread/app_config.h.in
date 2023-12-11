@@ -1,0 +1,3 @@
+#pragma once
+
+#define CRASHDUMPS_DIR "@CRASH_DUMP_DIR@"
