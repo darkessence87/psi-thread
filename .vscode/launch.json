@@ -8,7 +8,7 @@
             "name": "C++ Launch (Windows)",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "PSI_EXAMPLE_1.0_Simple_ThreadPool.exe",
+            "program": "PSI_EXAMPLE_1.1_Simple_ThreadPoolQueued.exe",
             "args": ["--gtest_filter=**", "--gtest_catch_exceptions=0"],
             "stopAtEntry": false,
             "console": "integratedTerminal",

@@ -43,7 +43,7 @@
                     "Visual Studio 17 2022",
                     "-A",
                     "x64",
-                    "-DCMAKE_BUILD_TYPE=Release",
+                    "-DCMAKE_BUILD_TYPE=Debug",
                     "-DSRC_DIR=${workspaceFolder}/sources/${workspaceFolderBasename}",
                     "-DBUILD_DIR=${workspaceFolder}/build/${workspaceFolderBasename}",
                     "-S",
@@ -55,7 +55,7 @@
             "linux": {
                 "command": "cmake",
                 "args": [
-                    "-DCMAKE_BUILD_TYPE=Release",
+                    "-DCMAKE_BUILD_TYPE=Debug",
                     "-DBUILD_DIR=${workspaceFolder}/build/${workspaceFolderBasename}",
                     "-S",
                     "${workspaceFolder}/sources/${workspaceFolderBasename}",
@@ -81,7 +81,7 @@
                 "--build",
                 "${workspaceFolder}/build/${workspaceFolderBasename}",
                 "--config",
-                "Release",
+                "Debug",
                 "-j6"
             ],
             "options": {
