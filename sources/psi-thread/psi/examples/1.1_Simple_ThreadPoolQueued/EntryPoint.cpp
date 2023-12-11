@@ -4,7 +4,7 @@
 
 int main()
 {
-    using namespace psi;
+    using namespace psi::thread;
 
     // current thread (main thread) should run until pool threads finished all tasks
 

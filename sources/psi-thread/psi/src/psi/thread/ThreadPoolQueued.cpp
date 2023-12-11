@@ -129,6 +129,10 @@ void ThreadPoolQueued::run()
     for (uint8_t i = 0; i < m_maxNumberOfThreads; ++i) {
         m_threads.emplace_back(std::make_unique<SimpleThread>());
     }
+
+    for (auto &t : m_threads) {
+        t->run();
+    }
 }
 
 void ThreadPoolQueued::interrupt()
