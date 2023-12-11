@@ -3,6 +3,7 @@ configure_file(${CMAKE_SOURCE_DIR}/app_config.h.in ${SRC_DIR}/psi/include/psi/ap
 file(MAKE_DIRECTORY ${CRASH_DUMP_DIR})
 
 include_directories(
+    ${3rdPARTY_DIR}/psi/include
     include
 )
 
