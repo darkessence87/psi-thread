@@ -2,17 +2,18 @@
 
 #include "psi/thread/CrashHandler.h"
 
-#ifdef PSI_EXAMPLE
+#ifdef PSI_LOGGER
+#include "psi/logger/Logger.h"
+#else
 #include <iostream>
 #include <sstream>
-#define PSI_EXAMPLE_LOG(x)                                                                                             \
+#define LOG_INFO(x)                                                                                                    \
     do {                                                                                                               \
         std::ostringstream os;                                                                                         \
         os << x;                                                                                                       \
         std::cout << os.str() << std::endl;                                                                            \
     } while (0)
-#else
-#error "Provide your own logger"
+#define LOG_ERROR(x) LOG_INFO(x)
 #endif
 
 namespace psi::thread {
@@ -69,7 +70,7 @@ void ThreadPool::interrupt()
 void ThreadPool::onThreadUpdate()
 {
     const auto threadId = std::this_thread::get_id();
-    PSI_EXAMPLE_LOG("Start pool thread: " << threadId);
+    LOG_INFO("Start pool thread: " << threadId);
 
     auto runThread = [this]() {
         ++m_aliveThreads;
@@ -87,8 +88,8 @@ void ThreadPool::onThreadUpdate()
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_onCrashSubs[threadId] = ch.crashEvent().subscribe([this](const auto &error, const auto &stacktrace) {
-            PSI_EXAMPLE_LOG("Crash in pool thread: " << std::this_thread::get_id() << ", error: [" << error << "]");
-            PSI_EXAMPLE_LOG(stacktrace);
+            LOG_ERROR("Crash in pool thread: " << std::this_thread::get_id() << ", error: [" << error << "]");
+            LOG_ERROR(stacktrace);
         });
     }
 
@@ -101,7 +102,7 @@ void ThreadPool::onThreadUpdate()
 
     --m_aliveThreads;
 
-    PSI_EXAMPLE_LOG("Exit pool thread: " << threadId);
+    LOG_INFO("Exit pool thread: " << threadId);
 }
 
 size_t ThreadPool::getWorkload() const

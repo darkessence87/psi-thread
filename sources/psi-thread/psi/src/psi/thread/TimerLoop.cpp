@@ -4,17 +4,18 @@
 
 #include <algorithm>
 
-#ifdef PSI_EXAMPLE
+#ifdef PSI_LOGGER
+#include "psi/logger/Logger.h"
+#else
 #include <iostream>
 #include <sstream>
-#define PSI_EXAMPLE_LOG(x)                                                                                             \
+#define LOG_INFO(x)                                                                                                    \
     do {                                                                                                               \
         std::ostringstream os;                                                                                         \
         os << x;                                                                                                       \
         std::cout << os.str() << std::endl;                                                                            \
     } while (0)
-#else
-#error "Provide your own logger"
+#define LOG_ERROR(x) LOG_INFO(x)
 #endif
 
 namespace psi::thread {
@@ -32,11 +33,11 @@ TimerLoop::~TimerLoop()
 
 void TimerLoop::onThreadUpdate()
 {
-    PSI_EXAMPLE_LOG("Start timer thread:" << std::this_thread::get_id());
+    LOG_INFO("Start timer thread:" << std::this_thread::get_id());
 
     psi::thread::CrashHandler ch;
     m_crashSub = ch.crashEvent().subscribe([this](const auto &error, const auto &) {
-        PSI_EXAMPLE_LOG("Crash in timer thread:" << std::this_thread::get_id() << ", error: " << error);
+        LOG_ERROR("Crash in timer thread:" << std::this_thread::get_id() << ", error: " << error);
     });
     ch.invoke([this]() {
         while (m_isActive) {
@@ -47,7 +48,7 @@ void TimerLoop::onThreadUpdate()
     m_isActive = false;
     m_crashSub.reset();
 
-    PSI_EXAMPLE_LOG("Exit timer thread:" << std::this_thread::get_id());
+    LOG_INFO("Exit timer thread:" << std::this_thread::get_id());
 }
 
 void TimerLoop::interrupt()
@@ -105,14 +106,14 @@ void TimerLoop::restartTimer(size_t id)
 
     auto itr = m_timersPlan.find(id);
     if (itr == m_timersPlan.end()) {
-        PSI_EXAMPLE_LOG("Could not find timer: " << id);
+        LOG_ERROR("Could not find timer: " << id);
         return;
     }
 
     auto tp = itr->second;
     auto itr2 = m_queue.find(tp);
     if (itr2 == m_queue.end()) {
-        PSI_EXAMPLE_LOG("Could not find time point for timer: " << id);
+        LOG_ERROR("Could not find time point for timer: " << id);
         m_timersPlan.erase(itr);
         return;
     }
@@ -120,7 +121,7 @@ void TimerLoop::restartTimer(size_t id)
     auto &timers = itr2->second;
     auto itr3 = std::find_if(timers.begin(), timers.end(), [id](auto &t) { return id == t->m_timerId; });
     if (itr3 == timers.end()) {
-        PSI_EXAMPLE_LOG("Could not find timer: " << id << " in queue");
+        LOG_ERROR("Could not find timer: " << id << " in queue");
         return;
     }
 
@@ -160,7 +161,7 @@ void TimerLoop::removeTimer(size_t id)
     auto &timers = itr2->second;
     auto itr3 = std::find_if(timers.begin(), timers.end(), [id](auto &t) { return id == t->m_timerId; });
     if (itr3 == timers.end()) {
-        PSI_EXAMPLE_LOG("Could not find timer: " << id << " in queue");
+        LOG_ERROR("Could not find timer: " << id << " in queue");
         return;
     }
 
@@ -209,7 +210,7 @@ void TimerLoop::trigger()
     }
 
     auto itr = m_queue.begin();
-    PSI_EXAMPLE_LOG("[" << itr->first.time_since_epoch().count() << "] timers.size():" << itr->second.size());
+    LOG_INFO("[" << itr->first.time_since_epoch().count() << "] timers.size():" << itr->second.size());
     auto timers = itr->second;
     m_queue.erase(itr);
     if (!m_queue.empty()) {

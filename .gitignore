@@ -1,2 +1,3 @@
 /build
-/sources/psi-thread/psi/include/psi/app_config.h
+/sources/**/3rdparty/psi/include/psi/logger
+/sources/**/3rdparty/psi/lib/**/psi-logger.*

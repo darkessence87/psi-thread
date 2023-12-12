@@ -27,20 +27,20 @@
 #include <signal.h>
 #include <sstream>
 
-#include "psi/Tools.h"
-#include "psi/app_config.h"
+#include "psi/tools/Tools.h"
 
-#ifdef PSI_EXAMPLE
+#ifdef PSI_LOGGER
+#include "psi/logger/Logger.h"
+#else
 #include <iostream>
 #include <sstream>
-#define PSI_EXAMPLE_LOG(x)                                                                                             \
+#define LOG_INFO_STATIC(x)                                                                                             \
     do {                                                                                                               \
         std::ostringstream os;                                                                                         \
         os << x;                                                                                                       \
         std::cout << os.str() << std::endl;                                                                            \
     } while (0)
-#else
-#error "Provide your own logger"
+#define LOG_ERROR_STATIC(x) LOG_INFO_STATIC(x)
 #endif
 
 namespace psi::thread {
@@ -103,7 +103,7 @@ std::string convertExceptionCodeToString(DWORD exCode)
 {
     auto hLibrary = LoadLibrary(_T("ntdll.dll"));
     if (hLibrary == NULL) {
-        PSI_EXAMPLE_LOG("Couldn't load ntdll.dll");
+        LOG_ERROR_STATIC("Couldn't load ntdll.dll");
         return "";
     }
 
@@ -127,7 +127,7 @@ const std::string createStacktrace(EXCEPTION_POINTERS *exceptionPtr)
     // Load psapi.dll
     auto hPsApi = LoadLibrary(_T("psapi.dll"));
     if (hPsApi == nullptr) {
-        PSI_EXAMPLE_LOG("Couldn't load psapi.dll");
+        LOG_ERROR_STATIC("Couldn't load psapi.dll");
         return "";
     }
 
@@ -246,17 +246,17 @@ const std::string createMiniDump(EXCEPTION_POINTERS *exceptionPtr)
     const auto currentProcessId = GetCurrentProcessId();
     const auto currentThreadId = GetCurrentThreadId();
 
-    PSI_EXAMPLE_LOG("currentProcessId: " << currentProcessId << ", currentThreadId: " << currentThreadId);
+    LOG_INFO_STATIC("currentProcessId: " << currentProcessId << ", currentThreadId: " << currentThreadId);
 
     // Load dbghelp.dll
     auto hDbgHelp = LoadLibrary(_T("dbghelp.dll"));
     if (hDbgHelp == nullptr) {
-        PSI_EXAMPLE_LOG("Couldn't load dbghelp.dll");
+        LOG_ERROR_STATIC("Couldn't load dbghelp.dll");
         return "";
     }
 
-    const std::string fileName = std::string(CRASHDUMPS_DIR) + "/crashdump" + tools::generateTimeStamp() + "_"
-                                 + std::to_string(currentProcessId) + "_" + std::to_string(currentThreadId) + ".dmp";
+    const std::string fileName = "crashdump" + tools::generateTimeStamp() + "_" + std::to_string(currentProcessId) + "_"
+                                 + std::to_string(currentThreadId) + ".dmp";
     HANDLE hFile =
         CreateFile(fileName.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, 0, CREATE_ALWAYS, 0, 0);
 
@@ -268,7 +268,7 @@ const std::string createMiniDump(EXCEPTION_POINTERS *exceptionPtr)
     const bool bWriteDump =
         MiniDumpWriteDump(currentProcess, currentProcessId, hFile, MiniDumpWithDataSegs, &excInfo, NULL, NULL);
     if (!bWriteDump) {
-        PSI_EXAMPLE_LOG("Error writing dump: " << fileName);
+        LOG_ERROR_STATIC("Error writing dump: " << fileName);
         CloseHandle(hFile);
         FreeLibrary(hDbgHelp);
         return "";
@@ -277,7 +277,7 @@ const std::string createMiniDump(EXCEPTION_POINTERS *exceptionPtr)
     CloseHandle(hFile);
     FreeLibrary(hDbgHelp);
 
-    PSI_EXAMPLE_LOG("Success!");
+    LOG_INFO_STATIC("Success!");
 
     return fileName;
 }

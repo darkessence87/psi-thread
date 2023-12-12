@@ -2,17 +2,18 @@
 #include "psi/thread/ThreadPoolQueued.h"
 #include "psi/thread/CrashHandler.h"
 
-#ifdef PSI_EXAMPLE
+#ifdef PSI_LOGGER
+#include "psi/logger/Logger.h"
+#else
 #include <iostream>
 #include <sstream>
-#define PSI_EXAMPLE_LOG(x)                                                                                             \
+#define LOG_INFO(x)                                                                                                    \
     do {                                                                                                               \
         std::ostringstream os;                                                                                         \
         os << x;                                                                                                       \
         std::cout << os.str() << std::endl;                                                                            \
     } while (0)
-#else
-#error "Provide your own logger"
+#define LOG_ERROR(x) LOG_INFO(x)
 #endif
 
 namespace psi::thread {
@@ -74,11 +75,11 @@ void ThreadPoolQueued::SimpleThread::invoke(Func &&fn)
 
 void ThreadPoolQueued::SimpleThread::onThreadUpdate()
 {
-    PSI_EXAMPLE_LOG("Start pool queued thread:" << std::this_thread::get_id());
+    LOG_INFO("Start pool queued thread:" << std::this_thread::get_id());
 
     psi::thread::CrashHandler ch;
     m_crashSub = ch.crashEvent().subscribe([this](const auto &error, const auto &) {
-        PSI_EXAMPLE_LOG("Crash in pool queued thread:" << std::this_thread::get_id() << ", error: " << error);
+        LOG_ERROR("Crash in pool queued thread:" << std::this_thread::get_id() << ", error: " << error);
     });
     ch.invoke([this]() {
         while (m_isActive) {
@@ -93,7 +94,7 @@ void ThreadPoolQueued::SimpleThread::onThreadUpdate()
     m_isActive = false;
     m_crashSub.reset();
 
-    PSI_EXAMPLE_LOG("Exit pool queued thread:" << std::this_thread::get_id());
+    LOG_INFO("Exit pool queued thread:" << std::this_thread::get_id());
 }
 
 void ThreadPoolQueued::SimpleThread::trigger()

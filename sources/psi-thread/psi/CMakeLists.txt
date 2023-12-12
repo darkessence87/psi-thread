@@ -1,10 +1,10 @@
-set( CRASH_DUMP_DIR ${BUILD_DIR}/bin/${CMAKE_BUILD_TYPE}/crashdumps)
-configure_file(${CMAKE_SOURCE_DIR}/app_config.h.in ${SRC_DIR}/psi/include/psi/app_config.h)
-file(MAKE_DIRECTORY ${CRASH_DUMP_DIR})
-
 include_directories(
     ${3rdPARTY_DIR}/psi/include
     include
+)
+
+link_directories(
+    ${3rdPARTY_DIR}/psi/lib/${SUB_DIR_LIBS}
 )
 
 set (SOURCES
@@ -14,10 +14,12 @@ set (SOURCES
     src/psi/thread/ThreadPoolQueued.cpp
     src/psi/thread/Timer.cpp
     src/psi/thread/TimerLoop.cpp
-    src/psi/Tools.cpp
 )
 
 add_library(psi-thread STATIC ${SOURCES})
+target_link_libraries(psi-thread
+    psi-tools
+)
 
 set(TEST_SRC
     tests/TimerTests.cpp
