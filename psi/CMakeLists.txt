@@ -1,14 +1,3 @@
-if (NOT EXISTS ${psi_comm_dir})
-    set (psi_comm_dir "")
-    find_submodule(psi-comm psi_comm_dir)
-    message("psi_comm_dir: ${psi_comm_dir}")
-endif()
-
-if (NOT EXISTS ${psi_tools_dir})
-    set (psi_tools_dir "")
-    find_submodule(psi-tools psi_tools_dir)
-    message("psi_tools_dir: ${psi_tools_dir}")
-endif()
 
 include_directories(
     ${3rdPARTY_DIR}/psi/include
