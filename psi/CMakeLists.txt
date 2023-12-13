@@ -1,10 +1,12 @@
 include_directories(
     ${3rdPARTY_DIR}/psi/include
+    ${3rdPARTY_DIR}/psi-tools/psi/include
     include
 )
 
 link_directories(
     ${3rdPARTY_DIR}/psi/lib/${SUB_DIR_LIBS}
+    ${3rdPARTY_DIR}/psi-tools/build/bin/${CMAKE_BUILD_TYPE}
 )
 
 set (SOURCES
