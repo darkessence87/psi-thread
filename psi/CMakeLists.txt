@@ -1,12 +1,25 @@
+if (NOT EXISTS ${psi_comm_dir})
+    set (psi_comm_dir "")
+    find_submodule(psi-comm psi_comm_dir)
+    message("psi_comm_dir: ${psi_comm_dir}")
+endif()
+
+if (NOT EXISTS ${psi_tools_dir})
+    set (psi_tools_dir "")
+    find_submodule(psi-tools psi_tools_dir)
+    message("psi_tools_dir: ${psi_tools_dir}")
+endif()
+
 include_directories(
     ${3rdPARTY_DIR}/psi/include
-    ${3rdPARTY_DIR}/psi-tools/psi/include
+    ${psi_comm_dir}/psi/include
+    ${psi_tools_dir}/psi/include
     include
 )
 
 link_directories(
     ${3rdPARTY_DIR}/psi/lib/${SUB_DIR_LIBS}
-    ${3rdPARTY_DIR}/psi-tools/build/bin/${CMAKE_BUILD_TYPE}
+    ${psi_tools_dir}/build/bin/${CMAKE_BUILD_TYPE}
 )
 
 set (SOURCES
@@ -19,7 +32,13 @@ set (SOURCES
 )
 
 add_library(psi-thread STATIC ${SOURCES})
+
+if (WIN32)
+    set (PLATFORM_LIBS "dbghelp.dll" "ntdll.dll")
+endif()
+
 target_link_libraries(psi-thread
+    ${PLATFORM_LIBS}
     psi-tools
 )
 
