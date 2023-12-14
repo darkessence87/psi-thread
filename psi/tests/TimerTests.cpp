@@ -6,7 +6,6 @@
 #include "psi/thread/Timer.h"
 #include "psi/thread/TimerLoop.h"
 
-
 using namespace ::testing;
 using namespace psi::thread;
 using namespace psi::test;
