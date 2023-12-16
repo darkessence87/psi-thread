@@ -43,7 +43,7 @@ class ThreadPoolQueued : public ILoop
         std::mutex m_mutex;
         std::condition_variable m_condition;
         std::queue<Func> m_queue;
-        std::atomic<bool> m_isActive;
+        bool m_isActive;
         std::thread m_thread;
         OnCrashEvent m_onCrashEvent;
 
