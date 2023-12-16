@@ -22,13 +22,13 @@ public:
 public: /// implements ILoop
     void run() override;
     void invoke(Func &&) override;
-    void trigger() override;
     void interrupt() override;
     bool isRunning() override;
     size_t getWorkload() const override;
     void join() override;
 
 private:
+    void trigger();
     void onThreadUpdate();
 
 private:

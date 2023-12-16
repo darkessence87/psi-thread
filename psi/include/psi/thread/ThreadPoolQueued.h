@@ -2,11 +2,13 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <map>
 #include <mutex>
 #include <queue>
 #include <thread>
 #include <vector>
 
+#include "psi/comm/Event.h"
 #include "psi/comm/Subscription.h"
 #include "psi/thread/ILoop.h"
 
@@ -14,7 +16,7 @@ namespace psi::thread {
 
 class ThreadPoolQueued : public ILoop
 {
-    class SimpleThread
+    class SimpleThread final
     {
     public:
         SimpleThread();
@@ -30,6 +32,9 @@ class ThreadPoolQueued : public ILoop
 
         void onThreadUpdate();
 
+        using OnCrashEvent = comm::Event<std::string /*error*/, std::string /*stacktrace*/>;
+        OnCrashEvent::Interface &onCrashEvent();
+
     private:
         SimpleThread(const SimpleThread &) = delete;
         SimpleThread &operator=(const SimpleThread &) = delete;
@@ -38,10 +43,11 @@ class ThreadPoolQueued : public ILoop
         std::mutex m_mutex;
         std::condition_variable m_condition;
         std::queue<Func> m_queue;
-        bool m_isActive;
+        std::atomic<bool> m_isActive;
         std::thread m_thread;
+        OnCrashEvent m_onCrashEvent;
 
-        psi::comm::Subscription m_crashSub;
+        friend class ThreadPoolQueued;
     };
 
 public:
@@ -51,15 +57,16 @@ public:
 public: // ILoop implementation
     void run() override;
     void invoke(Func &&) override;
-    void trigger() override;
     void interrupt() override;
     bool isRunning() override;
     size_t getWorkload() const override;
     void join() override;
 
 private:
-    std::atomic<int> m_threadIndex;
-    std::vector<std::unique_ptr<SimpleThread>> m_threads;
+    std::atomic<uint8_t> m_threadIndex = 0;
+    std::atomic<uint8_t> m_aliveThreads = 0;
+    std::vector<std::shared_ptr<SimpleThread>> m_threads;
+    std::map<uint8_t, comm::Subscription> m_onCrashSubs;
     uint8_t m_maxNumberOfThreads;
 };
 

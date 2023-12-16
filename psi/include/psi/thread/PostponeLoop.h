@@ -20,11 +20,11 @@ public:
     virtual ~PostponeLoop();
 
     void invoke(Func &&, const TimePoint &);
-    void trigger();
     void interrupt();
     bool isRunning();
 
 private:
+    void trigger();
     void onThreadUpdate();
 
 private:

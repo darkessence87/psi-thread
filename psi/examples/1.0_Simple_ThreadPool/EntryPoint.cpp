@@ -39,7 +39,7 @@ int main()
     // check value every 500 ms
     const auto startTs = std::chrono::high_resolution_clock::now();
     size_t lastWorkload = pool.getWorkload();
-    while (pool.getWorkload()) {
+    while (pool.getWorkload() && pool.isRunning()) {
         const size_t tasksPerSec = (lastWorkload - pool.getWorkload()) * 2;
         std::cout << "value: " << value << ", workload: " << pool.getWorkload() << ", tasks per seconds: ~"
                   << tasksPerSec << std::endl;

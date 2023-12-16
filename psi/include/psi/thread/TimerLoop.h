@@ -25,11 +25,11 @@ public:
     void restartTimer(size_t);
     void removeTimer(size_t);
 
-    void trigger();
     void interrupt();
     bool isRunning();
 
 private:
+    void trigger();
     void onThreadUpdate();
 
 private:

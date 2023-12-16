@@ -117,7 +117,9 @@ std::string convertExceptionCodeToString(DWORD exCode)
                   NULL);
     FreeLibrary(hLibrary);
 
-    return std::string(temp);
+    auto result = std::string(temp);
+
+    return tools::trim(result);
 }
 
 const std::string createStacktrace(EXCEPTION_POINTERS *exceptionPtr)
@@ -288,7 +290,7 @@ LONG WINAPI unhandledExceptionsHandler(PEXCEPTION_POINTERS exceptionPtr, std::st
 
     std::ostringstream ss;
     ss << convertExceptionCodeToString(exceptionPtr->ExceptionRecord->ExceptionCode);
-    ss << "(code: 0x" << tools::to_hex_string(exceptionPtr->ExceptionRecord->ExceptionCode);
+    ss << " (code: 0x" << tools::to_hex_string(exceptionPtr->ExceptionRecord->ExceptionCode);
     ss << " flags: 0x" << tools::to_hex_string(exceptionPtr->ExceptionRecord->ExceptionFlags) << ")";
     error = ss.str();
 
@@ -398,4 +400,4 @@ void CrashHandler::invoke(Func &&fn)
 #endif
 }
 
-} // namespace psi
+} // namespace psi::thread

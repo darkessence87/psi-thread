@@ -94,7 +94,6 @@ void ThreadPool::onThreadUpdate()
     }
 
     ch.invoke(runThread);
-
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_onCrashSubs.erase(m_onCrashSubs.find(threadId));

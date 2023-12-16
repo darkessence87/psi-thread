@@ -12,7 +12,6 @@ public:
 
     virtual void run() = 0;
     virtual void invoke(Func &&) = 0;
-    virtual void trigger() = 0;
     virtual void interrupt() = 0;
     virtual bool isRunning() = 0;
     virtual size_t getWorkload() const = 0;
