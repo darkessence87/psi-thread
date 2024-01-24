@@ -20,6 +20,7 @@ namespace psi::thread {
 
 ThreadPool::ThreadPool(uint8_t numberOfThreads)
     : m_isActive(false)
+    , m_interruptImmediately(false)
     , m_maxNumberOfThreads(numberOfThreads)
 {
 }
@@ -67,6 +68,12 @@ void ThreadPool::interrupt()
     m_threads.clear();
 }
 
+void ThreadPool::interruptImmediately()
+{
+    m_interruptImmediately = true;
+    interrupt();
+}
+
 void ThreadPool::onThreadUpdate()
 {
     const auto threadId = std::this_thread::get_id();
@@ -79,7 +86,7 @@ void ThreadPool::onThreadUpdate()
             trigger();
         }
 
-        while (!m_queue.empty()) {
+        while (!m_interruptImmediately && !m_queue.empty()) {
             trigger();
         }
     };
@@ -111,6 +118,10 @@ size_t ThreadPool::getWorkload() const
 
 void ThreadPool::invoke(Func &&fn)
 {
+    if (!isRunning()) {
+        return;
+    }
+
     std::unique_lock<std::mutex> lock(m_mutex);
 
     m_queue.emplace(std::forward<Func>(fn));
@@ -142,4 +153,4 @@ void ThreadPool::trigger()
     fn();
 }
 
-} // namespace psi
+} // namespace psi::thread

@@ -23,6 +23,7 @@ public: /// implements ILoop
     void run() override;
     void invoke(Func &&) override;
     void interrupt() override;
+    void interruptImmediately() override;
     bool isRunning() override;
     size_t getWorkload() const override;
     void join() override;
@@ -37,6 +38,7 @@ private:
     std::vector<std::thread> m_threads;
     std::queue<Func> m_queue;
     bool m_isActive;
+    bool m_interruptImmediately;
     uint8_t m_maxNumberOfThreads;
     std::atomic<uint8_t> m_aliveThreads = 0;
     std::map<std::thread::id, comm::Subscription> m_onCrashSubs;

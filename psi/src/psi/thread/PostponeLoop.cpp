@@ -68,6 +68,10 @@ bool PostponeLoop::isRunning()
 
 void PostponeLoop::invoke(Func &&fn, const TimePoint &tp)
 {
+    if (!isRunning()) {
+        return;
+    }
+
     std::unique_lock<std::mutex> lock(m_mutex);
 
     if (m_queue.empty() || tp < m_nextExecutionTime) {

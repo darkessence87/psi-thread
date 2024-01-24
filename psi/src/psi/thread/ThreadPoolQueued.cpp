@@ -20,6 +20,7 @@ namespace psi::thread {
 
 ThreadPoolQueued::SimpleThread::SimpleThread()
     : m_isActive(false)
+    , m_interruptImmediately(false)
 {
 }
 
@@ -49,6 +50,12 @@ void ThreadPoolQueued::SimpleThread::interrupt()
     join();
 }
 
+void ThreadPoolQueued::SimpleThread::interruptImmediately()
+{
+    m_interruptImmediately = true;
+    interrupt();
+}
+
 void ThreadPoolQueued::SimpleThread::join()
 {
     if (m_thread.joinable()) {
@@ -68,6 +75,10 @@ size_t ThreadPoolQueued::SimpleThread::getWorkload() const
 
 void ThreadPoolQueued::SimpleThread::invoke(Func &&fn)
 {
+    if (!isRunning()) {
+        return;
+    }
+
     std::unique_lock<std::mutex> lock(m_mutex);
     m_queue.emplace(fn);
     m_condition.notify_one();
@@ -87,7 +98,7 @@ void ThreadPoolQueued::SimpleThread::onThreadUpdate()
             trigger();
         }
 
-        while (!m_queue.empty()) {
+        while (!m_interruptImmediately && !m_queue.empty()) {
             trigger();
         }
     });
@@ -170,6 +181,13 @@ void ThreadPoolQueued::interrupt()
 {
     for (auto &t : m_threads) {
         t->interrupt();
+    }
+}
+
+void ThreadPoolQueued::interruptImmediately()
+{
+    for (auto &t : m_threads) {
+        t->interruptImmediately();
     }
 }
 

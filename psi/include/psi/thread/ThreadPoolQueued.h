@@ -26,6 +26,7 @@ class ThreadPoolQueued : public ILoop
         void invoke(Func &&);
         void trigger();
         void interrupt();
+        void interruptImmediately();
         bool isRunning();
         size_t getWorkload() const;
         void join();
@@ -44,6 +45,7 @@ class ThreadPoolQueued : public ILoop
         std::condition_variable m_condition;
         std::queue<Func> m_queue;
         bool m_isActive;
+        bool m_interruptImmediately;
         std::thread m_thread;
         OnCrashEvent m_onCrashEvent;
 
@@ -58,6 +60,7 @@ public: // ILoop implementation
     void run() override;
     void invoke(Func &&) override;
     void interrupt() override;
+    void interruptImmediately() override;
     bool isRunning() override;
     size_t getWorkload() const override;
     void join() override;
