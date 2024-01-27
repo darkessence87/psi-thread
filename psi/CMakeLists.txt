@@ -22,10 +22,10 @@ target_link_libraries(psi-thread ${PLATFORM_LIBS})
 set(TEST_SRC
     tests/TimerTests.cpp
 )
-psi_make_tests("Thread" "${TEST_SRC}" "psi-thread;psi-tools")
+psi_make_tests("Thread" "${TEST_SRC}" "psi-thread")
 
 set(EXAMPLE_SRC_1.0 examples/1.0_Simple_ThreadPool/EntryPoint.cpp)
-psi_make_examples("1.0_Simple_ThreadPool" "${EXAMPLE_SRC_1.0}" "psi-thread;psi-tools")
+psi_make_examples("1.0_Simple_ThreadPool" "${EXAMPLE_SRC_1.0}" "psi-thread")
 
 set(EXAMPLE_SRC_1.1 examples/1.1_Simple_ThreadPoolQueued/EntryPoint.cpp)
-psi_make_examples("1.1_Simple_ThreadPoolQueued" "${EXAMPLE_SRC_1.1}" "psi-thread;psi-tools")
+psi_make_examples("1.1_Simple_ThreadPoolQueued" "${EXAMPLE_SRC_1.1}" "psi-thread")
