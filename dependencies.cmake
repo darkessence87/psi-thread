@@ -1,5 +1,5 @@
 set(PSI_DEP_LIBS "" CACHE INTERNAL "")
-add_psi_dependency(comm)
+include_psi_dependency(comm)
 add_psi_dependency(tools)
 # add_psi_dependency(shared)
 # add_psi_dependency(logger)
