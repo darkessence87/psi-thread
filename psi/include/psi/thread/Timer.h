@@ -18,6 +18,7 @@ public:
     ~Timer();
 
     void start(int /*milliseconds*/, const Func &);
+    void startPeriodic(int /*milliseconds*/, const Func &);
     void restart();
     void stop();
     bool isRunning() const;
@@ -30,6 +31,7 @@ private:
     const size_t m_timerId;
     Func m_function;
     int m_length;
+    bool m_isPeriodic;
 
     std::atomic<bool> m_isActive;
 

@@ -10,6 +10,7 @@ Timer::Timer(size_t id, TimerLoop &loop)
     , m_isActive(false)
     , m_function(nullptr)
     , m_length(0)
+    , m_isPeriodic(false)
 {
 }
 
@@ -45,6 +46,12 @@ void Timer::start(int timeLen, const Func &func)
     m_isActive = true;
 }
 
+void Timer::startPeriodic(int timeLen, const Func &func)
+{
+    m_isPeriodic = true;
+    start(timeLen, func);
+}
+
 void Timer::restart()
 {
     if (!m_function) {
@@ -75,7 +82,11 @@ void Timer::invoke()
 {
     if (m_isActive && m_function) {
         //LOG_TRACE("Call timer:" << m_timerId);
-        m_isActive = false;
+        if (m_isPeriodic) {
+            m_loop.addTimer(shared_from_this(), m_length);
+        } else {
+            m_isActive = false;
+        }
 
         m_function();
     }
