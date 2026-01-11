@@ -196,7 +196,7 @@ const std::string createStacktrace(EXCEPTION_POINTERS *exceptionPtr)
     frame.AddrFrame.Mode = AddrModeFlat;
 #endif
 
-    IMAGEHLP_LINE64 line = {0};
+    IMAGEHLP_LINE64 line = {};
     line.SizeOfStruct = sizeof line;
     const auto imageType = ImageNtHeader(modules[0].baseAddress)->FileHeader.Machine;
 
@@ -319,7 +319,7 @@ CrashHandler::CrashEvent::Interface &CrashHandler::crashEvent()
     return m_crashEvent;
 }
 
-void CrashHandler::handleException(std::string &stacktrace)
+void CrashHandler::handleException([[maybe_unused]] std::string &st)
 {
 #ifdef __linux__
     const size_t STACK_TRACE_SZ = 100;
@@ -333,9 +333,7 @@ void CrashHandler::handleException(std::string &stacktrace)
         ss << "[" << i << "] " << stacktrace[i] << std::endl;
     }
 
-    stacktrace = ss.str();
-#else
-    stacktrace = stacktrace;
+    st = ss.str();
 #endif
 }
 

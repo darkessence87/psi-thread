@@ -20,7 +20,7 @@ class ThreadPoolQueued : public ILoop
     {
     public:
         SimpleThread();
-        virtual ~SimpleThread();
+        ~SimpleThread();
 
         void run();
         void invoke(Func &&);

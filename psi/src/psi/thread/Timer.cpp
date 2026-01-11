@@ -7,10 +7,10 @@ namespace psi::thread {
 Timer::Timer(size_t id, TimerLoop &loop)
     : m_loop(loop)
     , m_timerId(id)
-    , m_isActive(false)
     , m_function(nullptr)
     , m_length(0)
     , m_isPeriodic(false)
+    , m_isActive(false)
 {
 }
 
