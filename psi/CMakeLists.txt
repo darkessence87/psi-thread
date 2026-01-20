@@ -13,6 +13,7 @@ set (SOURCES
 )
 
 add_library(psi-thread STATIC ${SOURCES})
+psi_config_target(psi-thread)
 
 if (WIN32)
     set (PLATFORM_LIBS "dbghelp.dll;ntdll.dll")
