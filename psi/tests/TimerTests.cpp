@@ -1,19 +1,16 @@
 
-#include "TestHelper.h"
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "psi/test/psi_mock.h"
 
 #include "psi/thread/Timer.h"
 #include "psi/thread/TimerLoop.h"
 
-using namespace ::testing;
 using namespace psi::thread;
 using namespace psi::test;
 
-struct TimerTests : Test {
+struct TimerTests {
     using TimerCallback = std::function<void()>;
 
-    void SetUp()
+    TimerTests()
     {
         m_timerLoop = std::make_shared<TimerLoop>();
 
@@ -29,8 +26,6 @@ struct TimerTests : Test {
         m_timer4Cb = MockedFn<TimerCallback>::create();
         m_timer5Cb = MockedFn<TimerCallback>::create();
     }
-
-    void TearDown() {}
 
     std::shared_ptr<TimerLoop> m_timerLoop;
     std::atomic<size_t> m_timerCounter;
@@ -64,455 +59,494 @@ struct TimerTests : Test {
 // 3_1r2    = restart -> finished/running -> start -> running -> stop
 // 3_21     = restart -> finished/running -> stop -> start
 
-TEST_F(TimerTests, SingleTimer_StartSpam)
+TEST(Timer_Tests, SingleTimer_StartSpam)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
+    EXPECT_CALL(test.m_timer1Cb, 1);
 
     // start spam
     for (int i = 0; i < 100; ++i) {
-        m_timer1->start(100, m_timer1Cb->fn());
-        EXPECT_TRUE(m_timer1->isRunning());
+        test.m_timer1->start(100, test.m_timer1Cb->fn());
+        EXPECT_TRUE(test.m_timer1->isRunning());
     }
     // finished
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
 }
 
-TEST_F(TimerTests, SingleTimer_StartFinishedStopRestart)
+TEST(Timer_Tests, SingleTimer_StartFinishedStopRestart)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
     // start
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
-    m_timer1->start(100, m_timer1Cb->fn());
+    EXPECT_CALL(test.m_timer1Cb, 1);
+    test.m_timer1->start(100, test.m_timer1Cb->fn());
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // finished
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
     // stop
-    m_timer1->stop();
-    EXPECT_FALSE(m_timer1->isRunning());
+    test.m_timer1->stop();
+    EXPECT_FALSE(test.m_timer1->isRunning());
     // restart
-    EXPECT_CALL(*m_timer1Cb, f()).Times(0);
-    m_timer1->restart();
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_CALL(test.m_timer1Cb, 0);
+    test.m_timer1->restart();
+    EXPECT_FALSE(test.m_timer1->isRunning());
 }
 
-TEST_F(TimerTests, SingleTimer_StartRunningStopRestart)
+TEST(Timer_Tests, SingleTimer_StartRunningStopRestart)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
     // start
-    EXPECT_CALL(*m_timer1Cb, f()).Times(0);
-    m_timer1->start(100, m_timer1Cb->fn());
+    EXPECT_CALL(test.m_timer1Cb, 0);
+    test.m_timer1->start(100, test.m_timer1Cb->fn());
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // stop
-    m_timer1->stop();
-    EXPECT_FALSE(m_timer1->isRunning());
+    test.m_timer1->stop();
+    EXPECT_FALSE(test.m_timer1->isRunning());
     // restart
-    EXPECT_CALL(*m_timer1Cb, f()).Times(0);
-    m_timer1->restart();
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_CALL(test.m_timer1Cb, 0);
+    test.m_timer1->restart();
+    EXPECT_FALSE(test.m_timer1->isRunning());
 }
 
-TEST_F(TimerTests, SingleTimer_StartFinishedRestartFinishedStop)
+TEST(Timer_Tests, SingleTimer_StartFinishedRestartFinishedStop)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
     // start
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
-    m_timer1->start(100, m_timer1Cb->fn());
+    EXPECT_CALL(test.m_timer1Cb, 1);
+    test.m_timer1->start(100, test.m_timer1Cb->fn());
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // finished
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
+
+    TestLib::verify_and_clear_expectations();
+
     // restart
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
-    m_timer1->restart();
+    EXPECT_CALL(test.m_timer1Cb, 1);
+    test.m_timer1->restart();
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // finished
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
     // stop
-    m_timer1->stop();
-    EXPECT_FALSE(m_timer1->isRunning());
+    test.m_timer1->stop();
+    EXPECT_FALSE(test.m_timer1->isRunning());
 }
 
-TEST_F(TimerTests, SingleTimer_StartFinishedRestartRunningStop)
+TEST(Timer_Tests, SingleTimer_StartFinishedRestartRunningStop)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
     // start
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
-    m_timer1->start(100, m_timer1Cb->fn());
+    EXPECT_CALL(test.m_timer1Cb, 1);
+    test.m_timer1->start(100, test.m_timer1Cb->fn());
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // finished
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
     // restart
-    EXPECT_CALL(*m_timer1Cb, f()).Times(0);
-    m_timer1->restart();
+    EXPECT_CALL(test.m_timer1Cb, 0);
+    test.m_timer1->restart();
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // stop
-    m_timer1->stop();
-    EXPECT_FALSE(m_timer1->isRunning());
+    test.m_timer1->stop();
+    EXPECT_FALSE(test.m_timer1->isRunning());
 }
 
-TEST_F(TimerTests, SingleTimer_StartRunningRestartFinishedStop)
+TEST(Timer_Tests, SingleTimer_StartRunningRestartFinishedStop)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
     // start
-    EXPECT_CALL(*m_timer1Cb, f()).Times(0);
-    m_timer1->start(100, m_timer1Cb->fn());
+    EXPECT_CALL(test.m_timer1Cb, 0);
+    test.m_timer1->start(100, test.m_timer1Cb->fn());
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
+
+    TestLib::verify_and_clear_expectations();
+
     // restart
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
-    m_timer1->restart();
+    EXPECT_CALL(test.m_timer1Cb, 1);
+    test.m_timer1->restart();
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // finished
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
     // stop
-    m_timer1->stop();
-    EXPECT_FALSE(m_timer1->isRunning());
+    test.m_timer1->stop();
+    EXPECT_FALSE(test.m_timer1->isRunning());
 }
 
-TEST_F(TimerTests, SingleTimer_StartRunningRestartRunningStop)
+TEST(Timer_Tests, SingleTimer_StartRunningRestartRunningStop)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
     // start
-    EXPECT_CALL(*m_timer1Cb, f()).Times(0);
-    m_timer1->start(100, m_timer1Cb->fn());
+    EXPECT_CALL(test.m_timer1Cb, 0);
+    test.m_timer1->start(100, test.m_timer1Cb->fn());
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // restart
-    EXPECT_CALL(*m_timer1Cb, f()).Times(0);
-    m_timer1->restart();
+    EXPECT_CALL(test.m_timer1Cb, 0);
+    test.m_timer1->restart();
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // stop
-    m_timer1->stop();
-    EXPECT_FALSE(m_timer1->isRunning());
+    test.m_timer1->stop();
+    EXPECT_FALSE(test.m_timer1->isRunning());
 }
 
-TEST_F(TimerTests, SingleTimer_StopStartFinishedRestart)
+TEST(Timer_Tests, SingleTimer_StopStartFinishedRestart)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
     // stop
-    m_timer1->stop();
-    EXPECT_FALSE(m_timer1->isRunning());
+    test.m_timer1->stop();
+    EXPECT_FALSE(test.m_timer1->isRunning());
     // start
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
-    m_timer1->start(100, m_timer1Cb->fn());
+    EXPECT_CALL(test.m_timer1Cb, 1);
+    test.m_timer1->start(100, test.m_timer1Cb->fn());
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // finished
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
+
+    TestLib::verify_and_clear_expectations();
+
     // restart
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
-    m_timer1->restart();
+    EXPECT_CALL(test.m_timer1Cb, 1);
+    test.m_timer1->restart();
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // finished
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
 }
 
-TEST_F(TimerTests, SingleTimer_StopStartRunningRestart)
+TEST(Timer_Tests, SingleTimer_StopStartRunningRestart)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
     // stop
-    m_timer1->stop();
-    EXPECT_FALSE(m_timer1->isRunning());
+    test.m_timer1->stop();
+    EXPECT_FALSE(test.m_timer1->isRunning());
     // start
-    EXPECT_CALL(*m_timer1Cb, f()).Times(0);
-    m_timer1->start(100, m_timer1Cb->fn());
+    EXPECT_CALL(test.m_timer1Cb, 0);
+    test.m_timer1->start(100, test.m_timer1Cb->fn());
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
+
+    TestLib::verify_and_clear_expectations();
+    
     // restart
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
-    m_timer1->restart();
+    EXPECT_CALL(test.m_timer1Cb, 1);
+    test.m_timer1->restart();
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // finished
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
 }
 
-TEST_F(TimerTests, SingleTimer_StopRestartStart)
+TEST(Timer_Tests, SingleTimer_StopRestartStart)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
     // stop
-    m_timer1->stop();
-    EXPECT_FALSE(m_timer1->isRunning());
+    test.m_timer1->stop();
+    EXPECT_FALSE(test.m_timer1->isRunning());
     // restart
-    EXPECT_CALL(*m_timer1Cb, f()).Times(0);
-    m_timer1->restart();
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_CALL(test.m_timer1Cb, 0);
+    test.m_timer1->restart();
+    EXPECT_FALSE(test.m_timer1->isRunning());
+
+    TestLib::verify_and_clear_expectations();
+
     // start
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
-    m_timer1->start(100, m_timer1Cb->fn());
+    EXPECT_CALL(test.m_timer1Cb, 1);
+    test.m_timer1->start(100, test.m_timer1Cb->fn());
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // finished
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
 }
 
-TEST_F(TimerTests, SingleTimer_RestartStartFinishedStop)
+TEST(Timer_Tests, SingleTimer_RestartStartFinishedStop)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
     // restart
-    EXPECT_CALL(*m_timer1Cb, f()).Times(0);
-    m_timer1->restart();
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_CALL(test.m_timer1Cb, 0);
+    test.m_timer1->restart();
+    EXPECT_FALSE(test.m_timer1->isRunning());
+
+    TestLib::verify_and_clear_expectations();
+    
     // start
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
-    m_timer1->start(100, m_timer1Cb->fn());
+    EXPECT_CALL(test.m_timer1Cb, 1);
+    test.m_timer1->start(100, test.m_timer1Cb->fn());
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // finished
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
     // stop
-    m_timer1->stop();
-    EXPECT_FALSE(m_timer1->isRunning());
+    test.m_timer1->stop();
+    EXPECT_FALSE(test.m_timer1->isRunning());
 }
 
-TEST_F(TimerTests, SingleTimer_RestartStartRunningStop)
+TEST(Timer_Tests, SingleTimer_RestartStartRunningStop)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
     // restart
-    EXPECT_CALL(*m_timer1Cb, f()).Times(0);
-    m_timer1->restart();
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_CALL(test.m_timer1Cb, 0);
+    test.m_timer1->restart();
+    EXPECT_FALSE(test.m_timer1->isRunning());
     // start
-    EXPECT_CALL(*m_timer1Cb, f()).Times(0);
-    m_timer1->start(100, m_timer1Cb->fn());
+    EXPECT_CALL(test.m_timer1Cb, 0);
+    test.m_timer1->start(100, test.m_timer1Cb->fn());
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // stop
-    m_timer1->stop();
-    EXPECT_FALSE(m_timer1->isRunning());
+    test.m_timer1->stop();
+    EXPECT_FALSE(test.m_timer1->isRunning());
 }
 
-TEST_F(TimerTests, SingleTimer_RestartStopStart)
+TEST(Timer_Tests, SingleTimer_RestartStopStart)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
     // restart
-    EXPECT_CALL(*m_timer1Cb, f()).Times(0);
-    m_timer1->restart();
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_CALL(test.m_timer1Cb, 0);
+    test.m_timer1->restart();
+    EXPECT_FALSE(test.m_timer1->isRunning());
+
+    TestLib::verify_and_clear_expectations();
+    
     // stop
-    m_timer1->stop();
-    EXPECT_FALSE(m_timer1->isRunning());
+    test.m_timer1->stop();
+    EXPECT_FALSE(test.m_timer1->isRunning());
     // start
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
-    m_timer1->start(100, m_timer1Cb->fn());
+    EXPECT_CALL(test.m_timer1Cb, 1);
+    test.m_timer1->start(100, test.m_timer1Cb->fn());
     // running
-    EXPECT_TRUE(m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
     // finished
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    EXPECT_FALSE(m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
 }
 
-TEST_F(TimerTests, MultipleTimers_OrderByFastest)
+TEST(Timer_Tests, MultipleTimers_OrderByFastest)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer2Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer3Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer4Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer5Cb, f()).Times(1);
+    EXPECT_CALL(test.m_timer1Cb, 1);
+    EXPECT_CALL(test.m_timer2Cb, 1);
+    EXPECT_CALL(test.m_timer3Cb, 1);
+    EXPECT_CALL(test.m_timer4Cb, 1);
+    EXPECT_CALL(test.m_timer5Cb, 1);
 
     // start in order by fastest timer
-    m_timer1->start(100, m_timer1Cb->fn());
-    m_timer2->start(110, m_timer2Cb->fn());
-    m_timer3->start(120, m_timer3Cb->fn());
-    m_timer4->start(130, m_timer4Cb->fn());
-    m_timer5->start(140, m_timer5Cb->fn());
+    test.m_timer1->start(100, test.m_timer1Cb->fn());
+    test.m_timer2->start(110, test.m_timer2Cb->fn());
+    test.m_timer3->start(120, test.m_timer3Cb->fn());
+    test.m_timer4->start(130, test.m_timer4Cb->fn());
+    test.m_timer5->start(140, test.m_timer5Cb->fn());
 
-    EXPECT_TRUE(m_timer1->isRunning());
-    EXPECT_TRUE(m_timer2->isRunning());
-    EXPECT_TRUE(m_timer3->isRunning());
-    EXPECT_TRUE(m_timer4->isRunning());
-    EXPECT_TRUE(m_timer5->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer2->isRunning());
+    EXPECT_TRUE(test.m_timer3->isRunning());
+    EXPECT_TRUE(test.m_timer4->isRunning());
+    EXPECT_TRUE(test.m_timer5->isRunning());
 
     // finished all
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    EXPECT_FALSE(m_timer1->isRunning());
-    EXPECT_FALSE(m_timer2->isRunning());
-    EXPECT_FALSE(m_timer3->isRunning());
-    EXPECT_FALSE(m_timer4->isRunning());
-    EXPECT_FALSE(m_timer5->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer2->isRunning());
+    EXPECT_FALSE(test.m_timer3->isRunning());
+    EXPECT_FALSE(test.m_timer4->isRunning());
+    EXPECT_FALSE(test.m_timer5->isRunning());
 }
 
-TEST_F(TimerTests, MultipleTimers_OrderBySlowest)
+TEST(Timer_Tests, MultipleTimers_OrderBySlowest)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
-    EXPECT_CALL(*m_timer5Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer4Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer3Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer2Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
+    EXPECT_CALL(test.m_timer5Cb, 1);
+    EXPECT_CALL(test.m_timer4Cb, 1);
+    EXPECT_CALL(test.m_timer3Cb, 1);
+    EXPECT_CALL(test.m_timer2Cb, 1);
+    EXPECT_CALL(test.m_timer1Cb, 1);
 
     // start in order by fastest timer
-    m_timer1->start(140, m_timer1Cb->fn());
-    m_timer2->start(130, m_timer2Cb->fn());
-    m_timer3->start(120, m_timer3Cb->fn());
-    m_timer4->start(110, m_timer4Cb->fn());
-    m_timer5->start(100, m_timer5Cb->fn());
+    test.m_timer1->start(140, test.m_timer1Cb->fn());
+    test.m_timer2->start(130, test.m_timer2Cb->fn());
+    test.m_timer3->start(120, test.m_timer3Cb->fn());
+    test.m_timer4->start(110, test.m_timer4Cb->fn());
+    test.m_timer5->start(100, test.m_timer5Cb->fn());
 
-    EXPECT_TRUE(m_timer1->isRunning());
-    EXPECT_TRUE(m_timer2->isRunning());
-    EXPECT_TRUE(m_timer3->isRunning());
-    EXPECT_TRUE(m_timer4->isRunning());
-    EXPECT_TRUE(m_timer5->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer2->isRunning());
+    EXPECT_TRUE(test.m_timer3->isRunning());
+    EXPECT_TRUE(test.m_timer4->isRunning());
+    EXPECT_TRUE(test.m_timer5->isRunning());
 
     // finished all
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    EXPECT_FALSE(m_timer1->isRunning());
-    EXPECT_FALSE(m_timer2->isRunning());
-    EXPECT_FALSE(m_timer3->isRunning());
-    EXPECT_FALSE(m_timer4->isRunning());
-    EXPECT_FALSE(m_timer5->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer2->isRunning());
+    EXPECT_FALSE(test.m_timer3->isRunning());
+    EXPECT_FALSE(test.m_timer4->isRunning());
+    EXPECT_FALSE(test.m_timer5->isRunning());
 }
 
-TEST_F(TimerTests, MultipleTimers_OrderByFastestRestartToNonEqualTime)
+TEST(Timer_Tests, MultipleTimers_OrderByFastestRestartToNonEqualTime)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
-    EXPECT_CALL(*m_timer2Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer4Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer3Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer5Cb, f()).Times(1);
+    EXPECT_CALL(test.m_timer2Cb, 1);
+    EXPECT_CALL(test.m_timer1Cb, 1);
+    EXPECT_CALL(test.m_timer4Cb, 1);
+    EXPECT_CALL(test.m_timer3Cb, 1);
+    EXPECT_CALL(test.m_timer5Cb, 1);
 
     // start in order by fastest timer
-    m_timer1->start(1000, m_timer1Cb->fn());
-    m_timer2->start(1500, m_timer2Cb->fn());
-    m_timer3->start(2000, m_timer3Cb->fn());
-    m_timer4->start(2500, m_timer4Cb->fn());
-    m_timer5->start(3000, m_timer5Cb->fn());
+    test.m_timer1->start(1000, test.m_timer1Cb->fn());
+    test.m_timer2->start(1500, test.m_timer2Cb->fn());
+    test.m_timer3->start(2000, test.m_timer3Cb->fn());
+    test.m_timer4->start(2500, test.m_timer4Cb->fn());
+    test.m_timer5->start(3000, test.m_timer5Cb->fn());
 
-    EXPECT_TRUE(m_timer1->isRunning());
-    EXPECT_TRUE(m_timer2->isRunning());
-    EXPECT_TRUE(m_timer3->isRunning());
-    EXPECT_TRUE(m_timer4->isRunning());
-    EXPECT_TRUE(m_timer5->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer2->isRunning());
+    EXPECT_TRUE(test.m_timer3->isRunning());
+    EXPECT_TRUE(test.m_timer4->isRunning());
+    EXPECT_TRUE(test.m_timer5->isRunning());
 
     std::this_thread::sleep_for(std::chrono::milliseconds(750));
-    m_timer1->restart(); // 1750
+    test.m_timer1->restart(); // 1750
                          // 1500
-    m_timer3->restart(); // 2750
+    test.m_timer3->restart(); // 2750
                          // 2500
-    m_timer5->restart(); // 3750
+    test.m_timer5->restart(); // 3750
 
     // finished all
     std::this_thread::sleep_for(std::chrono::milliseconds(3500));
-    EXPECT_FALSE(m_timer1->isRunning());
-    EXPECT_FALSE(m_timer2->isRunning());
-    EXPECT_FALSE(m_timer3->isRunning());
-    EXPECT_FALSE(m_timer4->isRunning());
-    EXPECT_FALSE(m_timer5->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer2->isRunning());
+    EXPECT_FALSE(test.m_timer3->isRunning());
+    EXPECT_FALSE(test.m_timer4->isRunning());
+    EXPECT_FALSE(test.m_timer5->isRunning());
 }
 
-TEST_F(TimerTests, MultipleTimers_OrderByFastestRestartToEqualTime)
+TEST(Timer_Tests, MultipleTimers_OrderByFastestRestartToEqualTime)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
-    EXPECT_CALL(*m_timer2Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer4Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer3Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer5Cb, f()).Times(1);
+    EXPECT_CALL(test.m_timer2Cb, 1);
+    EXPECT_CALL(test.m_timer1Cb, 1);
+    EXPECT_CALL(test.m_timer4Cb, 1);
+    EXPECT_CALL(test.m_timer3Cb, 1);
+    EXPECT_CALL(test.m_timer5Cb, 1);
 
     // start in order by fastest timer
-    m_timer1->start(1000, m_timer1Cb->fn());
-    m_timer2->start(1500, m_timer2Cb->fn());
-    m_timer3->start(2000, m_timer3Cb->fn());
-    m_timer4->start(2500, m_timer4Cb->fn());
-    m_timer5->start(3000, m_timer5Cb->fn());
+    test.m_timer1->start(1000, test.m_timer1Cb->fn());
+    test.m_timer2->start(1500, test.m_timer2Cb->fn());
+    test.m_timer3->start(2000, test.m_timer3Cb->fn());
+    test.m_timer4->start(2500, test.m_timer4Cb->fn());
+    test.m_timer5->start(3000, test.m_timer5Cb->fn());
 
-    EXPECT_TRUE(m_timer1->isRunning());
-    EXPECT_TRUE(m_timer2->isRunning());
-    EXPECT_TRUE(m_timer3->isRunning());
-    EXPECT_TRUE(m_timer4->isRunning());
-    EXPECT_TRUE(m_timer5->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer2->isRunning());
+    EXPECT_TRUE(test.m_timer3->isRunning());
+    EXPECT_TRUE(test.m_timer4->isRunning());
+    EXPECT_TRUE(test.m_timer5->isRunning());
 
     // sleep 50 ms -> restart
     std::this_thread::sleep_for(std::chrono::milliseconds(510));
-    m_timer1->restart(); // 1510
+    test.m_timer1->restart(); // 1510
                          // 1500
-    m_timer3->restart(); // 2510
+    test.m_timer3->restart(); // 2510
                          // 2500
-    m_timer5->restart(); // 3510
+    test.m_timer5->restart(); // 3510
 
     // finished all
     std::this_thread::sleep_for(std::chrono::milliseconds(3500));
-    EXPECT_FALSE(m_timer1->isRunning());
-    EXPECT_FALSE(m_timer2->isRunning());
-    EXPECT_FALSE(m_timer3->isRunning());
-    EXPECT_FALSE(m_timer4->isRunning());
-    EXPECT_FALSE(m_timer5->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer2->isRunning());
+    EXPECT_FALSE(test.m_timer3->isRunning());
+    EXPECT_FALSE(test.m_timer4->isRunning());
+    EXPECT_FALSE(test.m_timer5->isRunning());
 }
 
-TEST_F(TimerTests, MultipleTimers_OrderBySlowestRestartToNonEqualTime)
+TEST(Timer_Tests, MultipleTimers_OrderBySlowestRestartToNonEqualTime)
 {
-    InSequence dummy;
+    TimerTests test;
+    // InSequence dummy;
 
-    EXPECT_CALL(*m_timer4Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer5Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer2Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer3Cb, f()).Times(1);
-    EXPECT_CALL(*m_timer1Cb, f()).Times(1);
+    EXPECT_CALL(test.m_timer4Cb, 1);
+    EXPECT_CALL(test.m_timer5Cb, 1);
+    EXPECT_CALL(test.m_timer2Cb, 1);
+    EXPECT_CALL(test.m_timer3Cb, 1);
+    EXPECT_CALL(test.m_timer1Cb, 1);
 
     // start in order by slowest timer
-    m_timer1->start(3000, m_timer1Cb->fn());
-    m_timer2->start(2500, m_timer2Cb->fn());
-    m_timer3->start(2000, m_timer3Cb->fn());
-    m_timer4->start(1500, m_timer4Cb->fn());
-    m_timer5->start(1000, m_timer5Cb->fn());
+    test.m_timer1->start(3000, test.m_timer1Cb->fn());
+    test.m_timer2->start(2500, test.m_timer2Cb->fn());
+    test.m_timer3->start(2000, test.m_timer3Cb->fn());
+    test.m_timer4->start(1500, test.m_timer4Cb->fn());
+    test.m_timer5->start(1000, test.m_timer5Cb->fn());
 
-    EXPECT_TRUE(m_timer1->isRunning());
-    EXPECT_TRUE(m_timer2->isRunning());
-    EXPECT_TRUE(m_timer3->isRunning());
-    EXPECT_TRUE(m_timer4->isRunning());
-    EXPECT_TRUE(m_timer5->isRunning());
+    EXPECT_TRUE(test.m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer2->isRunning());
+    EXPECT_TRUE(test.m_timer3->isRunning());
+    EXPECT_TRUE(test.m_timer4->isRunning());
+    EXPECT_TRUE(test.m_timer5->isRunning());
 
     std::this_thread::sleep_for(std::chrono::milliseconds(750));
-    m_timer1->restart(); // 3750
+    test.m_timer1->restart(); // 3750
                          // 2500
-    m_timer3->restart(); // 2750
+    test.m_timer3->restart(); // 2750
                          // 1500
-    m_timer5->restart(); // 1750
+    test.m_timer5->restart(); // 1750
 
     // finished all
     std::this_thread::sleep_for(std::chrono::milliseconds(3500));
-    EXPECT_FALSE(m_timer1->isRunning());
-    EXPECT_FALSE(m_timer2->isRunning());
-    EXPECT_FALSE(m_timer3->isRunning());
-    EXPECT_FALSE(m_timer4->isRunning());
-    EXPECT_FALSE(m_timer5->isRunning());
+    EXPECT_FALSE(test.m_timer1->isRunning());
+    EXPECT_FALSE(test.m_timer2->isRunning());
+    EXPECT_FALSE(test.m_timer3->isRunning());
+    EXPECT_FALSE(test.m_timer4->isRunning());
+    EXPECT_FALSE(test.m_timer5->isRunning());
 }
