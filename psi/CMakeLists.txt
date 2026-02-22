@@ -5,6 +5,7 @@ include_directories(
 
 set (SOURCES
     src/psi/thread/crash_handler/CrashHandler.cpp
+    src/psi/thread/crash_handler/dbg_helper.cpp
     src/psi/thread/crash_handler/mini_dump.cpp
     src/psi/thread/crash_handler/seh_handler.cpp
     src/psi/thread/crash_handler/stacktrace.cpp

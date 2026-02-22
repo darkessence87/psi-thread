@@ -1,12 +1,11 @@
 
+#include "stacktrace.h"
+
 #ifdef __linux__
 #include <execinfo.h>
 #include <sys/resource.h>
 #elif _WIN32
-#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-
-#include <DbgHelp.h>
 #endif
 
 #include <algorithm>
@@ -14,7 +13,7 @@
 #include <vector>
 
 #include "psi/tools/Tools.h"
-#include "stacktrace.h"
+#include "dbg_helper.h"
 
 namespace psi::thread {
 
@@ -64,6 +63,11 @@ public:
 std::string createStacktrace()
 {
 #ifdef _WIN32
+    auto &dbg = dbg_helper::instance();
+    if (!dbg.available()) {
+        return "Unavailable";
+    }
+
     constexpr USHORT MAX_FRAMES = 64;
     std::array<void *, MAX_FRAMES> frames;
 
@@ -72,12 +76,7 @@ std::string createStacktrace()
         return "No stacktrace";
     }
 
-    HANDLE process = GetCurrentProcess();
-    SymInitialize(process, nullptr, TRUE);
-
-    DWORD symOptions = SymGetOptions();
-    symOptions |= SYMOPT_LOAD_LINES | SYMOPT_UNDNAME;
-    SymSetOptions(symOptions);
+    dbg.symInitialize();
 
     std::ostringstream out;
 
@@ -91,14 +90,14 @@ std::string createStacktrace()
 
         DWORD64 displacement = 0;
 
-        if (SymFromAddr(process, addr, &displacement, sym)) {
+        if (dbg.symFromAddr(addr, &displacement, sym)) {
             out << "[" << i << "] " << sym->Name;
 
             IMAGEHLP_LINE64 line {};
             line.SizeOfStruct = sizeof(line);
             DWORD lineDisp = 0;
 
-            if (SymGetLineFromAddr64(process, addr, &lineDisp, &line)) {
+            if (dbg.symGetLineFromAddr64(addr, &lineDisp, &line)) {
                 out << ", " << line.FileName << ":" << line.LineNumber;
             }
 
@@ -108,7 +107,7 @@ std::string createStacktrace()
         }
     }
 
-    SymCleanup(process);
+    dbg.symCleanup();
     return out.str();
 #else
     return "Not implemented";
@@ -117,7 +116,11 @@ std::string createStacktrace()
 
 std::string createStacktrace(const CONTEXT &ctx)
 {
-    HANDLE process = GetCurrentProcess();
+    auto &dbg = dbg_helper::instance();
+    if (!dbg.available()) {
+        return "Unavailable";
+    }
+
     HANDLE thread = GetCurrentThread();
 
     STACKFRAME64 frame {};
@@ -144,7 +147,7 @@ std::string createStacktrace(const CONTEXT &ctx)
     std::ostringstream out;
 
     for (int i = 0; i < 64; ++i) {
-        if (!StackWalk64(imageType, process, thread, &frame, &walkCtx, nullptr, SymFunctionTableAccess64, SymGetModuleBase64, nullptr)) {
+        if (!dbg.stackWalk64(imageType, thread, &frame, &walkCtx)) {
             break;
         }
 
@@ -160,14 +163,14 @@ std::string createStacktrace(const CONTEXT &ctx)
 
         DWORD64 displacement = 0;
 
-        if (SymFromAddr(process, addr, &displacement, sym)) {
+        if (dbg.symFromAddr(addr, &displacement, sym)) {
             out << "[" << i << "] " << sym->Name;
 
             IMAGEHLP_LINE64 line {};
             line.SizeOfStruct = sizeof(line);
             DWORD lineDisp = 0;
 
-            if (SymGetLineFromAddr64(process, addr, &lineDisp, &line)) {
+            if (dbg.symGetLineFromAddr64(addr, &lineDisp, &line)) {
                 out << ", " << line.FileName << ":" << line.LineNumber;
             }
 

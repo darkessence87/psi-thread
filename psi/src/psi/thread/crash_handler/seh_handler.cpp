@@ -1,10 +1,6 @@
 
 #include "seh_handler.h"
 
-#if _WIN32
-#include <DbgHelp.h>
-#endif
-
 #include <sstream>
 
 #include "psi/tools/Tools.h"

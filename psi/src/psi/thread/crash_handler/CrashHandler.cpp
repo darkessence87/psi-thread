@@ -5,11 +5,6 @@
 #include <cstdio>
 #include <execinfo.h>
 #include <sys/resource.h>
-#elif _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-
-#include <DbgHelp.h>
 #endif
 
 #include <array>
@@ -20,10 +15,11 @@
 #include <string>
 #include <utility>
 
+#include "crash_notifier.h"
+#include "dbg_helper.h"
 #include "mini_dump.h"
 #include "seh_handler.h"
 #include "stacktrace.h"
-#include "crash_notifier.h"
 
 namespace psi::thread {
 
@@ -43,10 +39,9 @@ std::string executeCommand(const std::string &cmd)
 }
 #endif
 
-#ifdef _WIN32
-
 thread_local CrashNotifyFn *t_crash_notifier = nullptr;
 
+#ifdef _WIN32
 static std::string convertExceptionCodeToString(DWORD exCode)
 {
     LPSTR buffer = nullptr;
@@ -65,7 +60,6 @@ static std::string convertExceptionCodeToString(DWORD exCode)
 
     return tools::trim(result);
 }
-
 #endif
 
 static void invokeC(CrashHandler::Func &&fn, std::string &error, std::string &stacktrace)
@@ -123,6 +117,8 @@ CrashHandler::CrashHandler()
     const std::string folder(CRASHDUMPS_DIR);
     const std::string fileName("core-%e.%p.%h.%t");
     executeCommand(cmd + folder + "/" + fileName);
+#elif _WIN32
+    dbg_helper::instance();
 #endif
 }
 

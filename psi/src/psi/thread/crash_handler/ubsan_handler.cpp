@@ -4,8 +4,6 @@
 #include <sys/resource.h>
 #elif _WIN32
 #include <Windows.h>
-
-#include <DbgHelp.h>
 #endif
 
 #include <functional>

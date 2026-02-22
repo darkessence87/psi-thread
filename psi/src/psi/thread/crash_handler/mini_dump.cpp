@@ -1,14 +1,10 @@
 
 #include "mini_dump.h"
 
-#if _WIN32
-#include <DbgHelp.h>
-#endif
-
-#include <bit>
 #include <sstream>
 #include <string>
 
+#include "dbg_helper.h"
 #include "psi/tools/Tools.h"
 
 #ifdef PSI_LOGGER
@@ -26,36 +22,12 @@
 
 namespace psi::thread {
 
-using MiniDumpWriteDump_t = BOOL(WINAPI *)(HANDLE,
-                                           DWORD,
-                                           HANDLE,
-                                           MINIDUMP_TYPE,
-                                           PMINIDUMP_EXCEPTION_INFORMATION,
-                                           PMINIDUMP_USER_STREAM_INFORMATION,
-                                           PMINIDUMP_CALLBACK_INFORMATION);
-static MiniDumpWriteDump_t pMiniDumpWriteDump = nullptr;
-
-static void init_dbghelp_dynamic()
-{
-    static bool initialized = false;
-    if (initialized) {
-        return;
-    }
-
-    HMODULE hDbgHelp = LoadLibraryA("DbgHelp.dll");
-    if (!hDbgHelp) {
-        return;
-    }
-
-    auto proc = GetProcAddress(hDbgHelp, "MiniDumpWriteDump");
-    pMiniDumpWriteDump = std::bit_cast<MiniDumpWriteDump_t>(proc);
-
-    initialized = true;
-}
-
 void createMiniDump(const EXCEPTION_RECORD *record, const CONTEXT *context)
 {
-    init_dbghelp_dynamic();
+    auto &dbg = dbg_helper::instance();
+    if (!dbg.available()) {
+        return;
+    }
 
     const DWORD pid = GetCurrentProcessId();
     const DWORD tid = GetCurrentThreadId();
@@ -86,15 +58,12 @@ void createMiniDump(const EXCEPTION_RECORD *record, const CONTEXT *context)
         excInfoPtr = &excInfo;
     }
 
-    BOOL is_ok =
-        MiniDumpWriteDump(GetCurrentProcess(),
-                          pid,
-                          hFile,
-                          static_cast<MINIDUMP_TYPE>(MiniDumpWithFullMemory | MiniDumpWithHandleData | MiniDumpWithThreadInfo
-                                                     | MiniDumpWithUnloadedModules | MiniDumpWithFullMemoryInfo),
-                          excInfoPtr,
-                          nullptr,
-                          nullptr);
+    BOOL is_ok = dbg.miniDumpWriteDump(pid,
+                                       hFile,
+                                       static_cast<MINIDUMP_TYPE>(MiniDumpWithFullMemory | MiniDumpWithHandleData
+                                                                  | MiniDumpWithThreadInfo | MiniDumpWithUnloadedModules
+                                                                  | MiniDumpWithFullMemoryInfo),
+                                       excInfoPtr);
     if (!is_ok) {
         CloseHandle(hFile);
 
