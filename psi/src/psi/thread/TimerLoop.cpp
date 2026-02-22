@@ -36,7 +36,7 @@ void TimerLoop::onThreadUpdate()
     LOG_INFO("Start timer thread:" << std::this_thread::get_id());
 
     psi::thread::CrashHandler ch;
-    m_crashSub = ch.crashEvent().subscribe([this](const auto &error, const auto &) {
+    m_crashSub = ch.crashEvent().subscribe([](const auto &error, const auto &) {
         LOG_ERROR("Crash in timer thread:" << std::this_thread::get_id() << ", error: " << error);
     });
     ch.invoke([this]() {

@@ -54,7 +54,7 @@ class ThreadPoolQueued : public ILoop
 
 public:
     ThreadPoolQueued(uint8_t numberOfThreads = 10);
-    virtual ~ThreadPoolQueued();
+    virtual ~ThreadPoolQueued() override;
 
 public: // ILoop implementation
     void run() override;

@@ -17,7 +17,7 @@ class ThreadPool : public ILoop
 {
 public:
     ThreadPool(uint8_t numberOfThreads);
-    virtual ~ThreadPool();
+    virtual ~ThreadPool() override;
 
 public: /// implements ILoop
     void run() override;
