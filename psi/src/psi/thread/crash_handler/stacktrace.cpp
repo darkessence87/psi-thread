@@ -27,7 +27,10 @@ public:
     {
         const size_t sz = sizeof(IMAGEHLP_SYMBOL64) + maxNameLen;
         sym = static_cast<IMAGEHLP_SYMBOL64 *>(malloc(sz));
-        tools::mem_set(reinterpret_cast<uint8_t *>(sym), 0, uint8_t('\0'), sz);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage-in-libc-call"
+        std::memset(reinterpret_cast<uint8_t *>(sym), uint8_t('\0'), sz);
+#pragma clang diagnostic pop
         sym->SizeOfStruct = sizeof(*sym);
         sym->MaxNameLength = maxNameLen;
         DWORD64 displacement;
