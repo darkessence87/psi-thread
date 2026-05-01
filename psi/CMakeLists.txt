@@ -1,8 +1,3 @@
-
-include_directories(
-    include
-)
-
 set (SOURCES
     src/psi/thread/crash_handler/CrashHandler.cpp
     src/psi/thread/crash_handler/dbg_helper.cpp
@@ -17,13 +12,24 @@ set (SOURCES
     src/psi/thread/TimerLoop.cpp
 )
 
-add_library(psi-thread STATIC ${SOURCES})
-psi_config_target(psi-thread)
+set(target_lib "psi-thread")
+
+add_library(${target_lib} STATIC ${SOURCES})
+add_library(psi::thread ALIAS ${target_lib})
+
+target_include_directories(${target_lib}
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 
 if (WIN32)
-    set (PLATFORM_LIBS "dbghelp.dll;ntdll.dll")
+    target_link_libraries(${target_lib} dbghelp.dll ntdll.dll)
 endif()
-target_link_libraries(psi-thread ${PLATFORM_LIBS})
+
+psi_config_target(${target_lib})
 
 set(TEST_SRC
     tests/TimerTests.cpp
