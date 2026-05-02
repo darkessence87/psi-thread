@@ -67,7 +67,7 @@ void createMiniDump(const EXCEPTION_RECORD *record, const CONTEXT *context)
     if (!is_ok) {
         CloseHandle(hFile);
 
-        LOG_INFO_ERROR("Failed! " << fileName);
+        LOG_ERROR_STATIC("Failed! " << fileName);
         return;
     }
 
