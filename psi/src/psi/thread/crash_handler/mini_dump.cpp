@@ -17,7 +17,7 @@
         os << x;                                                                                                       \
         std::cout << os.str() << std::endl;                                                                            \
     } while (0)
-#define LOG_INFO_ERROR(x) LOG_INFO_STATIC(x)
+#define LOG_ERROR_STATIC(x) LOG_INFO_STATIC(x)
 #endif
 
 namespace psi::thread {
