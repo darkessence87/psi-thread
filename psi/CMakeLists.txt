@@ -29,6 +29,10 @@ if (WIN32)
     target_link_libraries(${target_lib} dbghelp.dll ntdll.dll)
 endif()
 
+if (ENABLE_LOGGER)
+    psi_link(${target_lib} psi-logger)
+endif()
+
 psi_config_target(${target_lib})
 
 set(TEST_SRC
