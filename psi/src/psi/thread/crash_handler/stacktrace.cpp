@@ -13,10 +13,13 @@
 #include <vector>
 
 #include "psi/tools/Tools.h"
+#ifdef _WIN32
 #include "dbg_helper.h"
+#endif
 
 namespace psi::thread {
 
+#ifdef _WIN32
 class symbol
 {
     IMAGEHLP_SYMBOL64 *sym;
@@ -62,6 +65,7 @@ public:
         return std::string(undName.data(), len);
     }
 };
+#endif // _WIN32
 
 std::string createStacktrace()
 {
@@ -117,6 +121,7 @@ std::string createStacktrace()
 #endif
 }
 
+#ifdef _WIN32
 std::string createStacktrace(const CONTEXT &ctx)
 {
     auto &dbg = dbg_helper::instance();
@@ -185,5 +190,6 @@ std::string createStacktrace(const CONTEXT &ctx)
 
     return out.str();
 }
+#endif // _WIN32
 
 } // namespace psi::thread

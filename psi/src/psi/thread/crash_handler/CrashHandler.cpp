@@ -5,6 +5,9 @@
 #include <cstdio>
 #include <execinfo.h>
 #include <sys/resource.h>
+#ifndef CRASHDUMPS_DIR
+#define CRASHDUMPS_DIR "/tmp"
+#endif
 #endif
 
 #include <array>
@@ -16,10 +19,12 @@
 #include <utility>
 
 #include "crash_notifier.h"
+#include "stacktrace.h"
+#ifdef _WIN32
 #include "dbg_helper.h"
 #include "mini_dump.h"
 #include "seh_handler.h"
-#include "stacktrace.h"
+#endif
 
 namespace psi::thread {
 

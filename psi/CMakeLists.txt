@@ -1,16 +1,21 @@
 set (SOURCES
     src/psi/thread/crash_handler/CrashHandler.cpp
-    src/psi/thread/crash_handler/dbg_helper.cpp
-    src/psi/thread/crash_handler/mini_dump.cpp
-    src/psi/thread/crash_handler/seh_handler.cpp
     src/psi/thread/crash_handler/stacktrace.cpp
-    src/psi/thread/crash_handler/ubsan_handler.cpp
     src/psi/thread/PostponeLoop.cpp
     src/psi/thread/ThreadPool.cpp
     src/psi/thread/ThreadPoolQueued.cpp
     src/psi/thread/Timer.cpp
     src/psi/thread/TimerLoop.cpp
 )
+
+if(WIN32)
+    list(APPEND SOURCES
+        src/psi/thread/crash_handler/dbg_helper.cpp
+        src/psi/thread/crash_handler/mini_dump.cpp
+        src/psi/thread/crash_handler/seh_handler.cpp
+        src/psi/thread/crash_handler/ubsan_handler.cpp
+    )
+endif()
 
 set(target_lib "psi-thread")
 
