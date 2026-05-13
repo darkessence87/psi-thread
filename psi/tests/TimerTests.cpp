@@ -1,4 +1,4 @@
-
+﻿
 #include "psi/test/psi_mock.h"
 
 #include "psi/thread/Timer.h"
@@ -549,4 +549,57 @@ TEST(Timer_Tests, MultipleTimers_OrderBySlowestRestartToNonEqualTime)
     EXPECT_FALSE(test.m_timer3->isRunning());
     EXPECT_FALSE(test.m_timer4->isRunning());
     EXPECT_FALSE(test.m_timer5->isRunning());
+}
+
+TEST(Timer_Tests, TimerLoop_IsRunning)
+{
+    auto loop = std::make_shared<TimerLoop>();
+    EXPECT_TRUE(loop->isRunning());
+    loop->interrupt();
+    EXPECT_FALSE(loop->isRunning());
+}
+
+TEST(Timer_Tests, AddTimer_Nullptr)
+{
+    TimerTests test;
+    test.m_timerLoop->addTimer(nullptr, 100);
+}
+
+TEST(Timer_Tests, RestartTimer_UnknownId)
+{
+    TimerTests test;
+    test.m_timerLoop->restartTimer(99999u);
+}
+
+TEST(Timer_Tests, RemoveTimer_UnknownId)
+{
+    TimerTests test;
+    test.m_timerLoop->removeTimer(99999u);
+}
+
+TEST(Timer_Tests, SingleTimer_StartNegativeTime_ImmediateCallback)
+{
+    TimerTests test;
+    EXPECT_CALL(test.m_timer1Cb, 1);
+    test.m_timer1->start(-1, test.m_timer1Cb->fn());
+}
+
+TEST(Timer_Tests, MultipleTimers_RemoveWhileRunning)
+{
+    TimerTests test;
+
+    EXPECT_CALL(test.m_timer1Cb, 0);
+    EXPECT_CALL(test.m_timer2Cb, 1);
+
+    test.m_timer1->start(200, test.m_timer1Cb->fn());
+    test.m_timer2->start(200, test.m_timer2Cb->fn());
+
+    EXPECT_TRUE(test.m_timer1->isRunning());
+    EXPECT_TRUE(test.m_timer2->isRunning());
+
+    test.m_timer1->stop();
+    EXPECT_FALSE(test.m_timer1->isRunning());
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    EXPECT_FALSE(test.m_timer2->isRunning());
 }
