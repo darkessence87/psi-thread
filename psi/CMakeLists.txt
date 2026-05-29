@@ -32,6 +32,9 @@ target_include_directories(${target_lib}
 
 if (WIN32)
     target_link_libraries(${target_lib} dbghelp.dll ntdll.dll)
+else()
+    find_package(Threads REQUIRED)
+    target_link_libraries(${target_lib} Threads::Threads)
 endif()
 
 if (ENABLE_LOGGER)
@@ -42,6 +45,7 @@ psi_config_target(${target_lib})
 
 set(TEST_SRC
     tests/TimerTests.cpp
+    tests/PostponeLoopTests.cpp
 )
 psi_make_tests("Thread" "${TEST_SRC}" "psi-thread")
 

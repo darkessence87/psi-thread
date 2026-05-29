@@ -5,6 +5,7 @@
 #include <functional>
 #include <map>
 #include <mutex>
+#include <thread>
 #include <vector>
 
 #include "psi/comm/Subscription.h"
