@@ -46,6 +46,7 @@ psi_config_target(${target_lib})
 set(TEST_SRC
     tests/TimerTests.cpp
     tests/PostponeLoopTests.cpp
+    tests/CrashHandlerTests.cpp
 )
 psi_make_tests("Thread" "${TEST_SRC}" "psi-thread")
 
